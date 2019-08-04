@@ -233,4 +233,4 @@ private:
     MYSQL* _mysql;
 };
     
-}   // end namespace order_system
+}   // end  order_system
