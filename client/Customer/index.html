@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <title>点餐页面</title>
+        <meta name="description" content="Welcome to my order system." />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <!--Bootstrap 4-->
+        <link rel="stylesheet" href="css/bootstrap.min.css">
+    </head>
+    <body>
+	
+	<section class="my-5 pt-5" id = "app">
+            <div class="container">
+
+                <!-- Tables  -->
+				<div class="row mb-5" id="tables">
+                    <div class="col-sm-12">
+                               <div class="mt-3 mb-5">
+							   <!--插值表达式-->
+                            <h3>当前订单价格：{{calc}}元</h3>
+                            <table class="table table-hover">
+                                <thead>
+                                    <tr>
+                                        <th>菜名</th>
+                                        <th>单价</th>
+                                        <th>选择</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+								<!--遍历dishes数组，循环获取其中的元素-->
+                                    <tr v-for = "dish in dishes">
+                                        <td>{{dish.name}}</td>
+                                        <td>{{dish.price / 100 }} 元</td>
+                                        <td>
+											<label class="custom-control custom-checkbox">
+											<!--将dish.seleccted与复选框关联起来-->
+											<input type="checkbox" class="custom-control-input" v-model = "dish.selected">
+											<span class="custom-control-indicator"></span>
+											<span class="custom-control-description"></span>
+										</label>
+										</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+							<button type="button" class="btn btn-outline-secondary" v-on:click = "send()">提交订单</button>
+                        </div>
+			</section>
+
+						
+						
+
+ <!--footer-->
+        <section class="py-5 bg-dark">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-6 offset-md-3 col-sm-8 offset-sm-2 col-xs-12 text-center">
+                        <!-- <h3>Upgrade to Pro Version</h3>
+                        <p class="pt-2">
+                            We are working on <b>Charcoal Pro</b> which will be released soon. The pro version 
+                            will have a lot more components, sections, icons, plugins and example pages. 
+                            Join the waiting list to get notified when we release it (plus discount code).
+                        </p>
+                        <a class="btn btn-warning" href="https://wireddots.com/newsletter">Join Waiting List</a>
+                        <hr class="my-5"/> -->
+                        <p class="pt-2 text-muted">
+                            &copy; By Mr.Wang 2019
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <script src="https://code.jquery.com/jquery-3.1.1.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.3/umd/popper.min.js"></script>
+        <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-beta.2/js/bootstrap.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+        <script src="js/app.js"></script>
+		<script>
+				var table_id = '{{武当派}}';
+				var app = new Vue({
+				  el: '#app',
+				  data: {
+					sum: 2000,
+					dishes: [
+					 
+					] 
+ 
+				  },
+				  
+				  methods: {
+						Get_dishes() {
+							// 使用JQuery 库中的ajax从服务器获取菜品信息
+							$.ajax({
+								 url: "/dish",
+								 type: "get",
+								 context: this, // 设置回调函数的 this 对象为 app这个对象
+								 // data 为请求body, status为响应码
+								 success: function (data, status) {
+									 // this指的是context的值，如果没有contex
+									 // tish指的就是$这个JQuery的对象
+								 this.dishes = data;
+								 }
+								
+								
+							});
+						
+							
+						
+						},
+						// 发送订单给服务器
+						send() {
+							// 校验是否满足提交
+							if(this.calc == 0) {
+								alter("当前未选择菜品");
+								return;
+							}
+							// 构造请求
+							
+							// 构造dish_ids数组
+							var dish_ids = [];
+							for(var index in this.dishes) {
+								if(this.dishes[index].selected) {
+									dish_ids.push(this.dishes[index].dish_id);
+								}
+							}
+							// http请求中的Body部分
+							var body = {
+								table_id: table_id,
+								time: new Date().toLocalDateString(),
+								dish_ids: dish_ids,
+								
+							}
+							// 使用ajax发送请求
+							$.ajax({
+								type: "post",
+								url: '/order',
+								data: Json.stringfy(body),
+								contentType: "application/json",
+								success: function(data, status) {
+									alter("下单成功");
+								}
+								
+							});
+						}
+					
+				  },
+				  
+				  // 计算属性
+				  // 计算所选菜品总价格
+				  computed: {
+					  calc() {
+						  var sum = 0;
+						  for(var index in this.dishes) {
+							  if(this.dishes[index].selected) {
+								  sum += this.dishes[index].price;
+							  }
+						  }
+						  return sum / 100;
+					  }
+				  },
+				})
+				
+				app.Get_dishes();
+		</script>
+    </body>
+</html>
